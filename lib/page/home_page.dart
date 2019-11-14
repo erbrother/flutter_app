@@ -7,9 +7,12 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  final TextEditingController _controller = new TextEditingController();
+
   @override
   Widget build(BuildContext context) {
     return new Scaffold(
+      resizeToAvoidBottomInset: false,
       body: Container(
           padding: EdgeInsets.all(20.0),
           decoration: BoxDecoration(
@@ -62,14 +65,79 @@ class _HomePageState extends State<HomePage> {
                           ],
                         ),
                       ),
-
+                      new Container(
+                        child: new Row(
+                          children: <Widget>[
+                            new Expanded(
+                              child: new Container(
+                                  padding:
+                                      EdgeInsets.symmetric(horizontal: 12.0),
+                                  height: 36.0,
+                                  decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.all(
+                                          Radius.circular(15.0))),
+                                  child: new TextField(
+                                    controller: _controller,
+                                    decoration: new InputDecoration(
+                                        hintText: "输入设备ID登录",
+                                        contentPadding:
+                                            EdgeInsets.only(top: 6.0),
+                                        border: InputBorder.none),
+                                  )),
+                            ),
+                            new Container(
+                              margin: EdgeInsets.symmetric(horizontal: 8.0),
+                              child: new Icon(
+                                Icons.fullscreen,
+                                color: Colors.white,
+                                size: 50.0,
+                              ),
+                            )
+                          ],
+                        ),
+                      ),
                     ],
                   ),
                 ),
-                new Expanded(child: new Container(),),
-                new InkWell(
-                  onTap: () => print('ok'),
-                  child: Text('123'),
+                new Expanded(
+                  child: new Container(),
+                ),
+                new Column(
+                  children: <Widget>[
+                    new InkWell(
+                      hoverColor: Colors.green,
+                      focusColor: Colors.red,
+                      onTap: () => print("ok"),
+                      child: new Container(
+                        padding: EdgeInsets.symmetric(
+                            horizontal: 50.0, vertical: 12.0),
+                        decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                                begin: Alignment.topCenter,
+                                end: Alignment.bottomCenter,
+                                colors: [Color(0xfffffb67), Color(0xfffeab4b)]),
+                            borderRadius:
+                                BorderRadius.all(Radius.circular(20.0))),
+                        child: new Text("连接设备"),
+                      ),
+                    ),
+                    new RaisedButton(
+                      onPressed: () => print('rasie button'),
+                      child: new Container(
+                        padding: EdgeInsets.symmetric(
+                            horizontal: 50.0, vertical: 12.0),
+                        decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                                begin: Alignment.topCenter,
+                                end: Alignment.bottomCenter,
+                                colors: [Color(0xfffffb67), Color(0xfffeab4b)]),
+                            borderRadius:
+                            BorderRadius.all(Radius.circular(20.0))),
+                        child: new Text("连接设备"),
+                      ),
+                    )
+                  ],
                 )
               ],
             ),
@@ -79,5 +147,8 @@ class _HomePageState extends State<HomePage> {
 }
 
 Widget _textItem(str) {
-  return new Container(margin: EdgeInsets.only(bottom: 12.0), child: new Text("$str", style: TextStyle(color: Colors.white)));;
+  return new Container(
+      margin: EdgeInsets.only(bottom: 12.0),
+      child: new Text("$str", style: TextStyle(color: Colors.white)));
+  ;
 }
