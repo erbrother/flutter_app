@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/painting.dart';
+import 'package:flutter_qc/page/tab_navigator.dart';
 
 class HomePage extends StatefulWidget {
   @override
@@ -7,9 +8,9 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  bool _userAgreement = false;
-  final TextEditingController _controller = new TextEditingController();
+  bool _userAgreement = false; //  用户协议
 
+  TextEditingController _controller = new TextEditingController(); //文本控制器
   @override
   Widget build(BuildContext context) {
     return new Scaffold(
@@ -50,11 +51,13 @@ class _HomePageState extends State<HomePage> {
                               height: 20.0,
                               margin: EdgeInsets.only(right: 10.0),
                               color: Colors.white,
-                              child: _userAgreement ? new Icon(
-                                Icons.check,
-                                color: Colors.green,
-                                size: 20.0,
-                              ) : new Container(),
+                              child: _userAgreement
+                                  ? new Icon(
+                                      Icons.check,
+                                      color: Colors.green,
+                                      size: 20.0,
+                                    )
+                                  : new Container(),
                             ),
                             _textItem("请仔细阅读此信息"),
                             new InkWell(
@@ -124,6 +127,7 @@ class _HomePageState extends State<HomePage> {
                       ),
                     ),
                     new InkWell(
+                      onTap: () => noDevice(context),
                       child: new Text(
                         "没有设备",
                         style: TextStyle(color: Colors.white),
@@ -148,9 +152,18 @@ class _HomePageState extends State<HomePage> {
       _userAgreement = !_userAgreement;
     });
   }
+
   //连接设备
   void connectDevice() {
     print("连接设备：${_controller.text}");
     print("用户协议：${_userAgreement}");
+  }
+
+  void noDevice(context) {
+    Navigator.push(context, MaterialPageRoute<void> (
+      builder: (BuildContext context) {
+        return new TabNavigator();
+      }
+    ));
   }
 }
