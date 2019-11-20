@@ -44,6 +44,12 @@ flutter:
   assets:
     - lib/images/backimg.jpg
     - lib/images/earphone-back.png
+    - lib/images/earphone-back2.png
+    - lib/images/earphone-offline.png
+    - lib/images/scan-gray.png
+    - lib/images/class.png
+    - lib/images/history.png
+    - lib/images/radio.png
   #  - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see
