@@ -8,11 +8,48 @@ class EarphonePage extends StatefulWidget {
 
 class _EarphonePageState extends State<EarphonePage> {
   final earphoneStatus = 0;
+  final List courseList = [
+    {
+      "imgUrl": 'https://resource.qctchina.top/course1.png',
+      "title": '剑桥英语',
+      "desc": '剑桥英语耳机剑桥英语剑桥英语剑桥英语剑桥英语剑桥英语剑桥英语剑桥英语剑桥英语剑桥英语剑桥英语剑桥英语剑桥英语'
+    },
+    {
+      "imgUrl": 'https://resource.qctchina.top/course1.png',
+      "title": '剑桥英语',
+      "desc": '剑桥英语耳机剑桥英语剑桥英语剑桥英语剑桥英语剑桥英语剑桥英语剑桥英语剑桥英语剑桥英语剑桥英语剑桥英语剑桥英语'
+    },
+    {
+      "imgUrl": 'https://resource.qctchina.top/course1.png',
+      "title": '剑桥英语',
+      "desc": '剑桥英语耳机剑桥英语剑桥英语剑桥英语剑桥英语剑桥英语剑桥英语剑桥英语剑桥英语剑桥英语剑桥英语剑桥英语剑桥英语'
+    },
+    {
+      "imgUrl": 'https://resource.qctchina.top/course1.png',
+      "title": '剑桥英语',
+      "desc": '剑桥英语耳机剑桥英语剑桥英语剑桥英语剑桥英语剑桥英语剑桥英语剑桥英语剑桥英语剑桥英语剑桥英语剑桥英语剑桥英语'
+    },
+    {
+      "imgUrl": 'https://resource.qctchina.top/course1.png',
+      "title": '剑桥英语',
+      "desc": '剑桥英语耳机剑桥英语剑桥英语剑桥英语剑桥英语剑桥英语剑桥英语剑桥英语剑桥英语剑桥英语剑桥英语剑桥英语剑桥英语'
+    },
+    {
+      "imgUrl": 'https://resource.qctchina.top/course1.png',
+      "title": '剑桥英语',
+      "desc": '剑桥英语耳机剑桥英语剑桥英语剑桥英语剑桥英语剑桥英语剑桥英语剑桥英语剑桥英语剑桥英语剑桥英语剑桥英语剑桥英语'
+    },
+    {
+      "imgUrl": 'https://resource.qctchina.top/course1.png',
+      "title": '剑桥英语',
+      "desc": '剑桥英语耳机剑桥英语剑桥英语剑桥英语剑桥英语剑桥英语剑桥英语剑桥英语剑桥英语剑桥英语剑桥英语剑桥英语剑桥英语'
+    }
+  ];
 
   @override
   void initState() {
     super.initState();
-
+    print(courseList[0]["imgUrl"]);
     print("earphone initState");
   }
 
@@ -35,12 +72,11 @@ class _EarphonePageState extends State<EarphonePage> {
                 padding: EdgeInsets.only(bottom: 8.0),
                 decoration: BoxDecoration(
                     color: Colors.white,
-                    border: Border(bottom: BorderSide(
-                        color: Colors.grey,
-                        width: 1.0,
-                        style: BorderStyle.solid
-                    ))
-                ),
+                    border: Border(
+                        bottom: BorderSide(
+                            color: Colors.grey,
+                            width: 1.0,
+                            style: BorderStyle.solid))),
                 child: new Row(
                   children: <Widget>[
                     _titleItem("lib/images/class.png", "课程规划"),
@@ -48,7 +84,15 @@ class _EarphonePageState extends State<EarphonePage> {
                     _titleItem("lib/images/radio.png", "知识电台"),
                   ],
                 )),
-            new Expanded(child: new Container(color: Colors.white))
+            new Expanded(
+                child: new Container(
+                  color: Colors.white,
+                  width: MediaQuery
+                      .of(context)
+                      .size
+                      .width,
+                  child: _earphoneItemContent(earphoneStatus),
+                ))
           ],
         ));
   }
@@ -121,6 +165,74 @@ class _EarphonePageState extends State<EarphonePage> {
         print("2");
         break;
     }
+  }
+
+//  耳机内容列表
+  _earphoneItemContent(num index) {
+    switch (index) {
+//      没有设备
+      case 0:
+        return new Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            new Padding(
+                padding: EdgeInsets.all(5.0),
+                child: new Text("学习任务 2019/11/20")),
+            new Divider(height: 1.0, color: Colors.grey),
+            new Expanded(
+                child: ListView.separated(
+                    padding: const EdgeInsets.all(8),
+                    itemCount: courseList.length,
+                    physics: BouncingScrollPhysics(),
+                    itemBuilder: (BuildContext context, int index) {
+                      return new Container(child: _courseItem(
+                          courseList[index]["imgUrl"], courseList[index]["title"],
+                          courseList[index]["desc"])
+                        );
+                    },
+                  separatorBuilder: (BuildContext context, int index) => const Divider()
+                ))
+          ],
+        );
+        break;
+      case 1:
+        return new Container();
+        break;
+      case 2:
+        return new Container();
+        break;
+    }
+  }
+
+  _courseItem(String imgUrl, String title, String desc) {
+    return new Row(
+      children: <Widget>[
+        new Container(
+            color: Colors.blueGrey,
+            width: 60,
+            height: 60,
+            margin: EdgeInsets.only(right: 12.0),
+            child: Image.network(imgUrl, fit: BoxFit.cover)),
+        new Expanded(
+            child: new Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                new Text(
+                  title,
+                  style: TextStyle(fontSize: 14),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                new Text(
+                  desc,
+                  style: TextStyle(fontSize: 12),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ))
+      ],
+    );
   }
 
 //子标题
