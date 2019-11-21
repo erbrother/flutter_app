@@ -71,12 +71,7 @@ class _EarphonePageState extends State<EarphonePage> {
             new Container(
                 padding: EdgeInsets.only(bottom: 8.0),
                 decoration: BoxDecoration(
-                    color: Colors.white,
-                    border: Border(
-                        bottom: BorderSide(
-                            color: Colors.grey,
-                            width: 1.0,
-                            style: BorderStyle.solid))),
+                    color: Colors.white),
                 child: new Row(
                   children: <Widget>[
                     _titleItem("lib/images/class.png", "课程规划"),
@@ -84,6 +79,7 @@ class _EarphonePageState extends State<EarphonePage> {
                     _titleItem("lib/images/radio.png", "知识电台"),
                   ],
                 )),
+            new Divider(height: 1.0),
             new Expanded(
                 child: new Container(
                   color: Colors.white,
@@ -170,7 +166,7 @@ class _EarphonePageState extends State<EarphonePage> {
 //  耳机内容列表
   _earphoneItemContent(num index) {
     switch (index) {
-//      没有设备
+      //没有设备
       case 0:
         return new Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -178,7 +174,7 @@ class _EarphonePageState extends State<EarphonePage> {
             new Padding(
                 padding: EdgeInsets.all(5.0),
                 child: new Text("学习任务 2019/11/20")),
-            new Divider(height: 1.0, color: Colors.grey),
+            new Divider(height: 1.0),
             new Expanded(
                 child: ListView.separated(
                     padding: const EdgeInsets.all(8),
@@ -195,10 +191,8 @@ class _EarphonePageState extends State<EarphonePage> {
           ],
         );
         break;
-      case 1:
-        return new Container();
-        break;
-      case 2:
+      //有设备离线在线
+      default:
         return new Container();
         break;
     }
