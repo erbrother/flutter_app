@@ -46,10 +46,14 @@ flutter:
     - lib/images/earphone-back.png
     - lib/images/earphone-back2.png
     - lib/images/earphone-offline.png
+    - lib/images/earphone.png
     - lib/images/scan-gray.png
     - lib/images/class.png
     - lib/images/history.png
     - lib/images/radio.png
+    - lib/images/wifi.png
+    - lib/images/battery-100.png
+    - lib/images/finish.png
   #  - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see

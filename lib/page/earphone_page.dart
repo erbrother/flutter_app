@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:flutter_qc/component/container-background.dart';
 
 class EarphonePage extends StatefulWidget {
   @override
@@ -7,7 +7,7 @@ class EarphonePage extends StatefulWidget {
 }
 
 class _EarphonePageState extends State<EarphonePage> {
-  final earphoneStatus = 0;
+  num earphoneStatus = 1;
   final List courseList = [
     {
       "imgUrl": 'https://resource.qctchina.top/course1.png',
@@ -49,8 +49,21 @@ class _EarphonePageState extends State<EarphonePage> {
   @override
   void initState() {
     super.initState();
-    print(courseList[0]["imgUrl"]);
     print("earphone initState");
+  }
+
+  @override
+  void dispose() {
+    // TODO: implement dispose
+    super.dispose();
+    print("earphone dispose");
+  }
+
+  @override
+  void didUpdateWidget(EarphonePage oldWidget) {
+    // TODO: implement didUpdateWidget
+    super.didUpdateWidget(oldWidget);
+    print("didUpdateWidget");
   }
 
   @override
@@ -58,51 +71,55 @@ class _EarphonePageState extends State<EarphonePage> {
     return Container(
         decoration: BoxDecoration(
             gradient: LinearGradient(
-              colors: [
-                Color(0xffedeef0),
-                Color(0xffe6e7e9),
-              ],
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-            )),
+          colors: [
+            Color(0xffedeef0),
+            Color(0xffe6e7e9),
+          ],
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+        )),
         child: new Column(
           children: <Widget>[
             earphone(earphoneStatus),
             new Container(
                 padding: EdgeInsets.only(bottom: 8.0),
-                decoration: BoxDecoration(
-                    color: Colors.white),
+                decoration: BoxDecoration(color: Colors.white),
                 child: new Row(
                   children: <Widget>[
-                    _titleItem("lib/images/class.png", "课程规划"),
-                    _titleItem("lib/images/history.png", "学习计划"),
-                    _titleItem("lib/images/radio.png", "知识电台"),
+                    _titleItem(
+                        "lib/images/class.png",
+                        "课程规划",
+                        () => setState(() {
+                              earphoneStatus = 0;
+                            })),
+                    _titleItem(
+                        "lib/images/history.png",
+                        "学习计划",
+                        () => setState(() {
+                              earphoneStatus = 1;
+                            })),
+                    _titleItem(
+                        "lib/images/radio.png",
+                        "知识电台",
+                        () => setState(() {
+                              earphoneStatus = 2;
+                            })),
                   ],
                 )),
-            new Divider(height: 1.0),
+            new Divider(height: 1.0, color: Colors.grey.withOpacity(0.7)),
             new Expanded(
                 child: new Container(
-                  color: Colors.white,
-                  width: MediaQuery
-                      .of(context)
-                      .size
-                      .width,
-                  child: _earphoneItemContent(earphoneStatus),
-                ))
+                    width: MediaQuery.of(context).size.width,
+                    color: Colors.white,
+                    child: _earphoneItemContent(earphoneStatus)))
           ],
         ));
   }
 
   Widget earphone(num index) {
     return new Container(
-      width: MediaQuery
-          .of(context)
-          .size
-          .width,
-      padding: EdgeInsets.only(top: MediaQuery
-          .of(context)
-          .padding
-          .top + 10.0),
+      width: MediaQuery.of(context).size.width,
+      padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top + 10.0),
       height: 210,
       decoration: BoxDecoration(
         image: DecorationImage(
@@ -154,11 +171,93 @@ class _EarphonePageState extends State<EarphonePage> {
           ],
         );
         break;
-      case 1:
-        print("1");
-        break;
-      case 2:
-        print("2");
+      default:
+        return new Column(
+          children: <Widget>[
+            new Container(
+              width: 120,
+              height: 120,
+              decoration: BoxDecoration(
+                image: DecorationImage(
+                  image: AssetImage("lib/images/earphone-back2.png"),
+                  fit: BoxFit.cover,
+                ),
+              ),
+              child: new Center(
+                child: new Container(
+                  width: 60,
+                  height: 60,
+                  decoration: BoxDecoration(
+                    image: DecorationImage(
+                      image: index == 2
+                          ? AssetImage("lib/images/earphone.png")
+                          : AssetImage("lib/images/earphone-offline.png"),
+                      fit: BoxFit.fitHeight,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8.0),
+              child: new Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  new Container(
+                    child: new Row(
+                      children: <Widget>[
+                        Padding(
+                          padding: const EdgeInsets.all(3.0),
+                          child: new ContainerBackground(
+                              width: 24.0,
+                              height: 24.0,
+                              background: "lib/images/wifi.png"),
+                        ),
+                        new Text("离线", style: TextStyle(color: Colors.white))
+                      ],
+                    ),
+                  ),
+                  new Container(
+                    margin: EdgeInsets.only(left: 12.0, right: 6.0),
+                    child: new Row(
+                      children: <Widget>[
+                        new Container(
+                          width: 24.0,
+                          height: 24.0,
+                          decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                  width: 1.0,
+                                  color: Colors.white,
+                                  style: BorderStyle.solid)),
+                          child: new Center(
+                            child: new Text("8G",
+                                style: TextStyle(
+                                    color: Colors.white, fontSize: 10.0)),
+                          ),
+                        ),
+                        new Text("100%", style: TextStyle(color: Colors.white))
+                      ],
+                    ),
+                  ),
+                  new Container(
+                      child: new Row(children: <Widget>[
+                    new ContainerBackground(
+                      width: 24.0,
+                      height: 24.0,
+                      background: "lib/images/battery-100.png",
+                    ),
+                    new Text("11%", style: TextStyle(color: Colors.white))
+                  ]))
+                ],
+              ),
+            ),
+            new InkWell(
+              child: new Text("设备编号：888888888888",
+                  style: TextStyle(color: Colors.white)),
+            )
+          ],
+        );
         break;
     }
   }
@@ -172,32 +271,57 @@ class _EarphonePageState extends State<EarphonePage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
             new Padding(
-                padding: EdgeInsets.all(5.0),
+                padding: EdgeInsets.all(8.0),
                 child: new Text("学习任务 2019/11/20")),
-            new Divider(height: 1.0),
+            new Divider(height: 1.0, color: Colors.grey.withOpacity(0.7)),
             new Expanded(
                 child: ListView.separated(
                     padding: const EdgeInsets.all(8),
                     itemCount: courseList.length,
                     physics: BouncingScrollPhysics(),
                     itemBuilder: (BuildContext context, int index) {
-                      return new Container(child: _courseItem(
-                          courseList[index]["imgUrl"], courseList[index]["title"],
-                          courseList[index]["desc"])
-                        );
+                      return new Container(
+                          child: _courseItem(
+                              courseList[index]["imgUrl"],
+                              courseList[index]["title"],
+                              courseList[index]["desc"]));
                     },
-                  separatorBuilder: (BuildContext context, int index) => const Divider()
-                ))
+                    separatorBuilder: (BuildContext context, int index) =>
+                        new Divider(
+                            height: 1.0,
+                            color: Colors.grey.withOpacity(0.7))))
           ],
         );
         break;
       //有设备离线在线
       default:
-        return new Container();
+        return new Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: new Row(
+                children: <Widget>[
+                  Container(child: new Text("学习任务 2019/11/12")),
+                  new Expanded(child: new Container()),
+                  Container(child: new Text("查看全部"))
+                ],
+              ),
+            ),
+            new Divider(height: 1.0, color: Colors.grey.withOpacity(0.7)),
+            new Expanded(
+                child: new Container(
+                    child: new ListView(children: <Widget>[
+              _deviceCourseItem(
+                  imgUrl: "https://resource.qctchina.top/course1.png")
+            ])))
+          ],
+        );
         break;
     }
   }
 
+//  没有设备时展示列表项
   _courseItem(String imgUrl, String title, String desc) {
     return new Row(
       children: <Widget>[
@@ -208,7 +332,7 @@ class _EarphonePageState extends State<EarphonePage> {
             margin: EdgeInsets.only(right: 12.0),
             child: Image.network(imgUrl, fit: BoxFit.cover)),
         new Expanded(
-            child: new Column(
+          child: new Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
                 new Text(
@@ -223,27 +347,115 @@ class _EarphonePageState extends State<EarphonePage> {
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
-              ],
-            ))
+              ]),
+        )
+      ],
+    );
+  }
+
+//  有设备时展示的列表
+  _deviceCourseItem(
+      {String imgUrl,
+      String clock,
+      String title,
+      String start,
+      String desc,
+      num planDay,
+      num progress}) {
+    return new Row(
+      children: <Widget>[
+        Padding(
+          padding: EdgeInsets.all(5.0),
+          child: new Stack(
+            children: <Widget>[
+              new Container(
+                  color: Colors.blueGrey,
+                  width: 100,
+                  height: 100,
+                  child: Image.network(imgUrl, fit: BoxFit.cover)),
+              Positioned(
+                bottom: 0,
+                child: new Container(
+                  width: 100,
+                  alignment: Alignment.center,
+                  padding: EdgeInsets.all(5.0),
+                  color: Colors.black.withOpacity(0.7),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: <Widget>[
+                      new Icon(Icons.access_alarm,
+                          size: 12.0, color: Colors.white),
+                      new Text("15:35",
+                          style:
+                              TextStyle(color: Colors.white, fontSize: 12.0)),
+                    ],
+                  ),
+                ),
+              )
+            ],
+          ),
+        ),
+        Expanded(
+          child: new Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              new Padding(
+                padding: EdgeInsets.only(right: 20.0),
+                child: new Text(
+                  "标题",
+                  style: TextStyle(fontSize: 18.0),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              new Text("开始时间：2019.11.14", style: TextStyle(fontSize: 12.0)),
+              new Text(
+                "描述",
+                style: TextStyle(fontSize: 12.0),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              new Text("计划天数：52",
+                  style: TextStyle(fontSize: 12.0, color: Colors.lightBlue))
+            ],
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: new ContainerBackground(
+            width: 45.0,
+            height: 45.0,
+            background: "lib/images/finish.png",
+            child: new Center(
+              child: new Text(
+                "50%",
+                style: TextStyle(color: Colors.grey),
+              ),
+            ),
+          ),
+        )
       ],
     );
   }
 
 //子标题
-  _titleItem(String imgUrl, String title) {
+  _titleItem(String imgUrl, String title, _tapCallback) {
     return new Expanded(
-        child: new Column(
-          children: <Widget>[
-            new Container(
-              width: 60,
-              height: 60,
-              margin: EdgeInsets.symmetric(vertical: 8),
-              decoration: BoxDecoration(
-                  image: DecorationImage(
-                      image: AssetImage(imgUrl), fit: BoxFit.cover)),
-            ),
-            new Text(title)
-          ],
-        ));
+        child: InkWell(
+      child: new Column(
+        children: <Widget>[
+          new Container(
+            width: 60,
+            height: 60,
+            margin: EdgeInsets.symmetric(vertical: 8),
+            decoration: BoxDecoration(
+                image: DecorationImage(
+                    image: AssetImage(imgUrl), fit: BoxFit.cover)),
+          ),
+          new Text(title)
+        ],
+      ),
+      onTap: _tapCallback,
+    ));
   }
 }
