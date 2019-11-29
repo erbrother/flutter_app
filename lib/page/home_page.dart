@@ -160,10 +160,6 @@ class _HomePageState extends State<HomePage> {
   }
 
   void noDevice(context) {
-    Navigator.push(context, MaterialPageRoute<void> (
-      builder: (BuildContext context) {
-        return new TabNavigator();
-      }
-    ));
+    Navigator.of(context).pop();
   }
 }

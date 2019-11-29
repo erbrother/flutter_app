@@ -23,7 +23,9 @@ dependencies:
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^0.1.2
-
+  dio: ^3.0.7
+#  flutter_blue: ^0.6.3+1
+  flutter_bluetooth_serial: ^0.2.2
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -54,6 +56,8 @@ flutter:
     - lib/images/wifi.png
     - lib/images/battery-100.png
     - lib/images/finish.png
+    - lib/images/addearphone.png
+    - lib/images/bluetooth.png
   #  - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see

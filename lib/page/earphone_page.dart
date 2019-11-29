@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_qc/component/container-background.dart';
+import 'package:flutter_qc/page/blueTooth_page.dart';
+import 'package:flutter_qc/page/course_page.dart';
+import 'package:flutter_qc/page/home_page.dart';
+
+enum Options { change, add }
 
 class EarphonePage extends StatefulWidget {
   @override
@@ -7,44 +12,8 @@ class EarphonePage extends StatefulWidget {
 }
 
 class _EarphonePageState extends State<EarphonePage> {
-  num earphoneStatus = 1;
-  final List courseList = [
-    {
-      "imgUrl": 'https://resource.qctchina.top/course1.png',
-      "title": '剑桥英语',
-      "desc": '剑桥英语耳机剑桥英语剑桥英语剑桥英语剑桥英语剑桥英语剑桥英语剑桥英语剑桥英语剑桥英语剑桥英语剑桥英语剑桥英语'
-    },
-    {
-      "imgUrl": 'https://resource.qctchina.top/course1.png',
-      "title": '剑桥英语',
-      "desc": '剑桥英语耳机剑桥英语剑桥英语剑桥英语剑桥英语剑桥英语剑桥英语剑桥英语剑桥英语剑桥英语剑桥英语剑桥英语剑桥英语'
-    },
-    {
-      "imgUrl": 'https://resource.qctchina.top/course1.png',
-      "title": '剑桥英语',
-      "desc": '剑桥英语耳机剑桥英语剑桥英语剑桥英语剑桥英语剑桥英语剑桥英语剑桥英语剑桥英语剑桥英语剑桥英语剑桥英语剑桥英语'
-    },
-    {
-      "imgUrl": 'https://resource.qctchina.top/course1.png',
-      "title": '剑桥英语',
-      "desc": '剑桥英语耳机剑桥英语剑桥英语剑桥英语剑桥英语剑桥英语剑桥英语剑桥英语剑桥英语剑桥英语剑桥英语剑桥英语剑桥英语'
-    },
-    {
-      "imgUrl": 'https://resource.qctchina.top/course1.png',
-      "title": '剑桥英语',
-      "desc": '剑桥英语耳机剑桥英语剑桥英语剑桥英语剑桥英语剑桥英语剑桥英语剑桥英语剑桥英语剑桥英语剑桥英语剑桥英语剑桥英语'
-    },
-    {
-      "imgUrl": 'https://resource.qctchina.top/course1.png',
-      "title": '剑桥英语',
-      "desc": '剑桥英语耳机剑桥英语剑桥英语剑桥英语剑桥英语剑桥英语剑桥英语剑桥英语剑桥英语剑桥英语剑桥英语剑桥英语剑桥英语'
-    },
-    {
-      "imgUrl": 'https://resource.qctchina.top/course1.png',
-      "title": '剑桥英语',
-      "desc": '剑桥英语耳机剑桥英语剑桥英语剑桥英语剑桥英语剑桥英语剑桥英语剑桥英语剑桥英语剑桥英语剑桥英语剑桥英语剑桥英语'
-    }
-  ];
+  num earphoneStatus = 0;
+  List courseList = new List();
 
   @override
   void initState() {
@@ -63,7 +32,7 @@ class _EarphonePageState extends State<EarphonePage> {
   void didUpdateWidget(EarphonePage oldWidget) {
     // TODO: implement didUpdateWidget
     super.didUpdateWidget(oldWidget);
-    print("didUpdateWidget");
+    print("earphone page didUpdateWidget");
   }
 
   @override
@@ -89,9 +58,10 @@ class _EarphonePageState extends State<EarphonePage> {
                     _titleItem(
                         "lib/images/class.png",
                         "课程规划",
-                        () => setState(() {
-                              earphoneStatus = 0;
-                            })),
+                        () => Navigator.push(context, MaterialPageRoute<void>(
+                                builder: (BuildContext context) {
+                              return new CoursePage();
+                            }))),
                     _titleItem(
                         "lib/images/history.png",
                         "学习计划",
@@ -118,81 +88,146 @@ class _EarphonePageState extends State<EarphonePage> {
 
   Widget earphone(num index) {
     return new Container(
-      width: MediaQuery.of(context).size.width,
-      padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top + 10.0),
-      height: 210,
-      decoration: BoxDecoration(
-        image: DecorationImage(
-          image: AssetImage("lib/images/earphone-back.png"),
-          fit: BoxFit.cover,
+        width: MediaQuery.of(context).size.width,
+        padding:
+            EdgeInsets.only(top: MediaQuery.of(context).padding.top + 10.0),
+        height: 210,
+        decoration: BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage("lib/images/earphone-back.png"),
+            fit: BoxFit.cover,
+          ),
         ),
-      ),
-      child: _earphoneItem(index),
-    );
+        child: new Stack(children: <Widget>[
+          _earphoneItem(index),
+          new Positioned(
+              top: 8.0,
+              right: 8.0,
+              child: new InkWell(
+                onTap: () {
+                  print("ADD");
+                },
+                child: new PopupMenuButton(
+                    color: Colors.black.withOpacity(0.7),
+                    padding: EdgeInsets.all(0.0),
+                    onSelected: (Options result) {
+                      print(result);
+                    },
+                    icon: Icon(Icons.add,
+                        size: 38.0, color: Colors.white.withOpacity(0.7)),
+                    offset: Offset(0.0, 100.0),
+                    itemBuilder: (BuildContext context) =>
+                        <PopupMenuEntry<Options>>[
+                          const PopupMenuItem<Options>(
+                            value: Options.change,
+                            child: ListTile(
+                              contentPadding: EdgeInsets.all(0.0),
+                              leading: CircleAvatar(
+                                backgroundColor: Colors.transparent,
+                                child: Icon(Icons.headset),
+                              ),
+                              title: Text("更换设备",
+                                  textAlign: TextAlign.left,
+                                  style: TextStyle(color: Colors.white)),
+                            ),
+                          ),
+//                          const PopupMenuItem<Options>(
+//                            value: Options.add,
+//                            child: ListTile(
+//                              dense: true,
+//                                contentPadding: EdgeInsets.all(0.0),
+//                              leading:
+//                                  Icon(Icons.add_a_photo, color: Colors.white),
+//                              title: Align(
+//                                alignment: Alignment(-2.0, 0),
+//                                child: Text("添加设备",
+//                                    style: TextStyle(color: Colors.white)),
+//                              ),
+//                            ),
+//                          )
+                        ]),
+              ))
+        ]));
   }
 
 //  耳机状态
   _earphoneItem(num index) {
     switch (index) {
       case 0:
-        return new Column(
-          children: <Widget>[
-            new Container(
-              width: 120,
-              height: 120,
-              decoration: BoxDecoration(
-                image: DecorationImage(
-                  image: AssetImage("lib/images/earphone-back2.png"),
-                  fit: BoxFit.cover,
-                ),
-              ),
-              child: new Center(
+        return Center(
+          child: new Column(
+            children: <Widget>[
+              InkWell(
+                onTap: () {
+                  Navigator.of(context).push(
+                      new MaterialPageRoute(builder: (context) => HomePage()));
+                },
                 child: new Container(
-                  width: 60,
-                  height: 60,
+                  width: 120,
+                  height: 120,
                   decoration: BoxDecoration(
                     image: DecorationImage(
-                      image: AssetImage("lib/images/scan-gray.png"),
+                      image: AssetImage("lib/images/earphone-back2.png"),
                       fit: BoxFit.cover,
+                    ),
+                  ),
+                  child: new Center(
+                    child: new Container(
+                      width: 60,
+                      height: 60,
+                      decoration: BoxDecoration(
+                        image: DecorationImage(
+                          image: AssetImage("lib/images/scan-gray.png"),
+                          fit: BoxFit.cover,
+                        ),
+                      ),
                     ),
                   ),
                 ),
               ),
-            ),
-            new Padding(
-              padding: EdgeInsets.symmetric(vertical: 8.0),
-              child: new Text("请连接设备",
-                  style: TextStyle(color: Colors.white, fontSize: 14.0)),
-            ),
-            new Text(
-              "一键式听力学习",
-              style: TextStyle(color: Colors.white, fontSize: 14.0),
-            ),
-          ],
+              new Padding(
+                padding: EdgeInsets.symmetric(vertical: 8.0),
+                child: new Text("请连接设备",
+                    style: TextStyle(color: Colors.white, fontSize: 14.0)),
+              ),
+              new Text(
+                "一键式听力学习",
+                style: TextStyle(color: Colors.white, fontSize: 14.0),
+              ),
+            ],
+          ),
         );
         break;
       default:
         return new Column(
           children: <Widget>[
-            new Container(
-              width: 120,
-              height: 120,
-              decoration: BoxDecoration(
-                image: DecorationImage(
-                  image: AssetImage("lib/images/earphone-back2.png"),
-                  fit: BoxFit.cover,
+            InkWell(
+              onTap: () {
+                if (index != 2) {
+                  Navigator.of(context).push(
+                      MaterialPageRoute(builder: (context) => BlueToothPage()));
+                }
+              },
+              child: new Container(
+                width: 120,
+                height: 120,
+                decoration: BoxDecoration(
+                  image: DecorationImage(
+                    image: AssetImage("lib/images/earphone-back2.png"),
+                    fit: BoxFit.cover,
+                  ),
                 ),
-              ),
-              child: new Center(
-                child: new Container(
-                  width: 60,
-                  height: 60,
-                  decoration: BoxDecoration(
-                    image: DecorationImage(
-                      image: index == 2
-                          ? AssetImage("lib/images/earphone.png")
-                          : AssetImage("lib/images/earphone-offline.png"),
-                      fit: BoxFit.fitHeight,
+                child: new Center(
+                  child: new Container(
+                    width: 60,
+                    height: 60,
+                    decoration: BoxDecoration(
+                      image: DecorationImage(
+                        image: index == 2
+                            ? AssetImage("lib/images/earphone.png")
+                            : AssetImage("lib/images/earphone-offline.png"),
+                        fit: BoxFit.fitHeight,
+                      ),
                     ),
                   ),
                 ),
@@ -288,8 +323,7 @@ class _EarphonePageState extends State<EarphonePage> {
                     },
                     separatorBuilder: (BuildContext context, int index) =>
                         new Divider(
-                            height: 1.0,
-                            color: Colors.grey.withOpacity(0.7))))
+                            height: 1.0, color: Colors.grey.withOpacity(0.7))))
           ],
         );
         break;

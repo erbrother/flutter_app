@@ -35,7 +35,7 @@ class _TabNavigatorState extends State<TabNavigator> {
         },
         type: BottomNavigationBarType.fixed,
         items: [
-          _bottomItem('耳机', Icons.group, 0),
+          _bottomItem('耳机', Icons.headset, 0),
           _bottomItem('群组', Icons.group, 1),
           _bottomItem('我的', Icons.person, 2)
         ],
