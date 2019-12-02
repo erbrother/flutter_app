@@ -1,6 +1,7 @@
 import 'dart:async';
+import 'dart:math';
 import 'package:flutter/material.dart';
-import 'package:flutter_bluetooth_serial/flutter_bluetooth_serial.dart';
+import 'package:flutter_blue/flutter_blue.dart';
 
 class BlueToothPage extends StatefulWidget {
   @override
@@ -8,16 +9,27 @@ class BlueToothPage extends StatefulWidget {
 }
 
 class _BlueToothPageState extends State<BlueToothPage>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
+//  蓝牙提示动画
   Animation<double> _bluetoothAnimation;
   AnimationController _bluetoothAnimationController;
 
-  bool refresh = true;
+//  刷新动画
+  Animation<double> _bluetoothRefreshAnimation;
+  AnimationController _bluetoothRefreshAnimationController;
 
+  bool refresh = false;
+
+//  key
   final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
-  StreamSubscription<BluetoothDiscoveryResult> _streamSubscription;
-  List<BluetoothDiscoveryResult> bluetoothList =
-      List<BluetoothDiscoveryResult>();
+  final GlobalKey<AnimatedListState> _bluetoothListKey = GlobalKey();
+
+//  蓝牙相关api
+  FlutterBlue flutterBlue = FlutterBlue.instance;
+  StreamSubscription  _subscription;
+
+//  蓝牙设备列表
+  List<ScanResult> bluetoothList = new List();
 
   //  初始化页面
   @override
@@ -29,17 +41,26 @@ class _BlueToothPageState extends State<BlueToothPage>
     _bluetoothAnimation = new CurvedAnimation(
         parent: _bluetoothAnimationController, curve: Curves.elasticOut);
 
+    _bluetoothRefreshAnimationController = new AnimationController(
+        duration: new Duration(seconds: 1), vsync: this);
+    _bluetoothRefreshAnimation = new CurvedAnimation(
+        parent: _bluetoothRefreshAnimationController, curve: Curves.linear);
+
     _bluetoothAnimation.addListener(() => this.setState(() {}));
-    _initBluetooth();
+    _bluetoothRefreshAnimation.addListener(() => this.setState(() {}));
+
+//    _initBluetooth();
+    _initFlutterBluetooth();
   }
 
   @override
   void dispose() {
     // TODO: implement dispose
+    _bluetoothAnimationController?.dispose();
+    _bluetoothRefreshAnimationController?.dispose();
+    flutterBlue.stopScan();
+    _subscription.cancel();
     super.dispose();
-    _bluetoothAnimationController.dispose();
-
-    print("dispose");
   }
 
   @override
@@ -88,31 +109,43 @@ class _BlueToothPageState extends State<BlueToothPage>
                       children: <Widget>[
                         Padding(
                           padding: const EdgeInsets.only(right: 8.0),
-                          child: refresh
-                              ? Icon(Icons.refresh, color: Colors.grey)
-                              : Container(),
+                          child: Transform.rotate(
+                            angle: _bluetoothRefreshAnimation.value * 2 * pi -
+                                pi / 2,
+                            child: refresh
+                                ? Icon(Icons.refresh, color: Colors.grey)
+                                : Container(),
+                          ),
                         ),
                         Expanded(
-                            child: Text("已发现的智能设备",
-                                style: TextStyle(color: Colors.grey))),
-                        InkWell(
-                          onTap: _refreshBluetooth,
-                          child: Container(
-                            padding: EdgeInsets.symmetric(
-                                horizontal: 15.0, vertical: 5.0),
-                            decoration: BoxDecoration(
-                                color: Colors.green,
-                                borderRadius:
-                                    BorderRadius.all(Radius.circular(14.0))),
-                            child: Text("刷新列表",
-                                style: TextStyle(color: Colors.white)),
+                            child: refresh
+                                ? Text("正在搜索设备中...",
+                                    style: TextStyle(color: Colors.grey))
+                                : Text("已发现的智能设备",
+                                    style: TextStyle(color: Colors.grey))),
+                        Ink(
+                          child: InkWell(
+                            onTap: _refreshBluetooth,
+                            child: Container(
+                              decoration: BoxDecoration(
+                                  color: Colors.green,
+                                  borderRadius:
+                                      BorderRadius.all(Radius.circular(14.0))),
+                              padding: EdgeInsets.symmetric(
+                                  horizontal: 15.0, vertical: 5.0),
+                              child: Text("刷新列表",
+                                  style: TextStyle(color: Colors.white)),
+                            ),
                           ),
                         )
                       ],
                     ),
                   ),
+                  Padding(
+                    padding: EdgeInsets.all(5.0),
+                  ),
                   new Expanded(
-                      child: bluetoothList.length == 0
+                      child: bluetoothList.length == 0 && refresh == false
                           ? noContent()
                           : bluetoothListView())
                 ],
@@ -154,7 +187,7 @@ class _BlueToothPageState extends State<BlueToothPage>
     );
   }
 
-  noContent() {
+  Widget noContent() {
     return Container(
       margin: EdgeInsets.only(top: 25.0),
       child: Column(
@@ -195,56 +228,106 @@ class _BlueToothPageState extends State<BlueToothPage>
     );
   }
 
-  bluetoothListView() {
-    return Container();
+  Widget bluetoothListView() {
+    return AnimatedList(
+        key: _bluetoothListKey,
+        padding: const EdgeInsets.all(8),
+        initialItemCount: bluetoothList.length,
+        physics: BouncingScrollPhysics(),
+        itemBuilder: (BuildContext context, int index, animation) {
+          return FadeTransition(
+            opacity: animation,
+            child: InkWell(
+              onTap: () => connectDevice(index),
+              child: Container(
+                  margin: EdgeInsets.all(5.0),
+                  decoration: BoxDecoration(
+                      color: Colors.white,
+                      border: Border.all(color: Colors.grey.withOpacity(0.5)),
+                      borderRadius: BorderRadius.all(Radius.circular(6.0))),
+                  height: 50,
+                  child: Center(
+                      child: bluetoothList[index].device.name ==  null || bluetoothList[index].device.name == ""
+                          ? Text("未知设备")
+                          : Text('${bluetoothList[index].device.name}'))),
+            ),
+          );
+        });
   }
 
-  Future _initBluetooth() async {
-    BluetoothState bluetoothStatus =
-        await FlutterBluetoothSerial.instance.state;
-
-//    监听蓝牙状态变化
-    FlutterBluetoothSerial.instance.onStateChanged().listen((bluetoothState) {
-      String bluetoothStateStr = bluetoothState.toString();
-      if (bluetoothStateStr == "BluetoothState.STATE_OFF") {
+  _initFlutterBluetooth() async {
+    flutterBlue.state.listen((BluetoothState state) {
+      if (state == BluetoothState.off) {
         _bluetoothAnimationController.animateTo(1);
-      } else if (bluetoothStateStr == "BluetoothState.STATE_ON") {
+      }
+
+      if (state == BluetoothState.on) {
         _bluetoothAnimationController.animateTo(0);
       }
     });
+    _getBluetoothList();
+  }
 
+  _getBluetoothList() async{
+    if (!await flutterBlue.isOn)
+      return _bluetoothAnimationController.animateTo(1);
 
-    if (bluetoothStatus.toString() == "BluetoothState.STATE_OFF") {
+    // Listen to scan results
+    setState(() {
+      refresh = true;
+    });
+    _bluetoothRefreshAnimationController.repeat();
+    _subscription = flutterBlue.scan(timeout: Duration(seconds: 4)).listen((scanResult) {
+      // do something with scan result
+      num index = bluetoothList.indexOf(scanResult);
+      if(index == -1) addBluetoothListItem(scanResult);
+    });
+    _subscription.onDone(handleDone);
+  }
+//  刷新蓝牙按钮
+  Future _refreshBluetooth() async {
+    if(refresh == true) return;
+    if (!await flutterBlue.isOn){
       _bluetoothAnimationController.animateTo(1);
       return;
     }
-    print("OK");
+    _clearAllItems();
+    _getBluetoothList();
+  }
 
-//    获取蓝牙设备信息
-    _streamSubscription =
-        FlutterBluetoothSerial.instance.startDiscovery().listen((r) {
-      setState(() {
-        bluetoothList.add(r);
-      });
+  handleDone() {
+    _bluetoothRefreshAnimationController.stop();
+    setState(() {
+      refresh = false;
     });
   }
 
-  Future _refreshBluetooth() async {
-    await FlutterBluetoothSerial.instance.cancelDiscovery();
-
-    BluetoothState bluetoothStatus =
-        await FlutterBluetoothSerial.instance.state;
-
-    if (bluetoothStatus.toString() == "BluetoothState.STATE_OFF") {
-      _bluetoothAnimationController.animateTo(1);
-      return;
-    }
-
-    _streamSubscription =
-        FlutterBluetoothSerial.instance.startDiscovery().listen((r) {
-      setState(() {
-        bluetoothList.add(r);
-      });
+//    连接蓝牙设备
+  connectDevice(int index) async{
+    print(bluetoothList[index].device.name);
+    await bluetoothList[index].device.connect();
+    List<BluetoothService> services = await bluetoothList[index].device.discoverServices();
+    services.forEach((service) {
+      // do something with service
+      print(service);
     });
+  }
+
+  void addBluetoothListItem(ScanResult r) {
+    int index = bluetoothList.length;
+
+    bluetoothList.add(r);
+    _bluetoothListKey.currentState
+        .insertItem(index, duration: Duration(milliseconds: 500));
+  }
+
+  void _clearAllItems() {
+    for (var i = 0; i <= bluetoothList.length - 1; i++) {
+      _bluetoothListKey.currentState.removeItem(0,
+          (BuildContext context, Animation<double> animation) {
+        return Container();
+      });
+    }
+    bluetoothList.clear();
   }
 }
