@@ -26,10 +26,12 @@ class _BlueToothPageState extends State<BlueToothPage>
 
 //  蓝牙相关api
   FlutterBlue flutterBlue = FlutterBlue.instance;
-  StreamSubscription  _subscription;
+  StreamSubscription _subscription;
 
 //  蓝牙设备列表
   List<ScanResult> bluetoothList = new List();
+//  连接的蓝牙设备
+  BluetoothDevice bluetoothDevice;
 
   //  初始化页面
   @override
@@ -59,6 +61,7 @@ class _BlueToothPageState extends State<BlueToothPage>
     _bluetoothAnimationController?.dispose();
     _bluetoothRefreshAnimationController?.dispose();
     flutterBlue.stopScan();
+    bluetoothDevice?.disconnect();
     _subscription.cancel();
     super.dispose();
   }
@@ -247,7 +250,8 @@ class _BlueToothPageState extends State<BlueToothPage>
                       borderRadius: BorderRadius.all(Radius.circular(6.0))),
                   height: 50,
                   child: Center(
-                      child: bluetoothList[index].device.name ==  null || bluetoothList[index].device.name == ""
+                      child: bluetoothList[index].device.name == null ||
+                              bluetoothList[index].device.name == ""
                           ? Text("未知设备")
                           : Text('${bluetoothList[index].device.name}'))),
             ),
@@ -268,7 +272,8 @@ class _BlueToothPageState extends State<BlueToothPage>
     _getBluetoothList();
   }
 
-  _getBluetoothList() async{
+//  获取蓝牙设备列表
+  _getBluetoothList() async {
     if (!await flutterBlue.isOn)
       return _bluetoothAnimationController.animateTo(1);
 
@@ -277,17 +282,22 @@ class _BlueToothPageState extends State<BlueToothPage>
       refresh = true;
     });
     _bluetoothRefreshAnimationController.repeat();
-    _subscription = flutterBlue.scan(timeout: Duration(seconds: 4)).listen((scanResult) {
+    _subscription = flutterBlue.scan(
+        timeout: Duration(seconds: 4),
+        withServices: [
+          Guid('0000FFFF-0000-1000-8000-00805F9B34FB')
+        ]).listen((scanResult) {
       // do something with scan result
       num index = bluetoothList.indexOf(scanResult);
-      if(index == -1) addBluetoothListItem(scanResult);
+      if (index == -1) addBluetoothListItem(scanResult);
     });
     _subscription.onDone(handleDone);
   }
+
 //  刷新蓝牙按钮
   Future _refreshBluetooth() async {
-    if(refresh == true) return;
-    if (!await flutterBlue.isOn){
+    if (refresh == true) return;
+    if (!await flutterBlue.isOn) {
       _bluetoothAnimationController.animateTo(1);
       return;
     }
@@ -295,6 +305,7 @@ class _BlueToothPageState extends State<BlueToothPage>
     _getBluetoothList();
   }
 
+//  处理流关闭事件
   handleDone() {
     _bluetoothRefreshAnimationController.stop();
     setState(() {
@@ -302,15 +313,21 @@ class _BlueToothPageState extends State<BlueToothPage>
     });
   }
 
-//    连接蓝牙设备
-  connectDevice(int index) async{
-    print(bluetoothList[index].device.name);
-    await bluetoothList[index].device.connect();
-    List<BluetoothService> services = await bluetoothList[index].device.discoverServices();
-    services.forEach((service) {
-      // do something with service
-      print(service);
-    });
+//  连接蓝牙设备
+  connectDevice(int index) async {
+    bluetoothDevice =  bluetoothList[index].device;
+    await bluetoothDevice.connect();
+    List<BluetoothService> services =
+        await bluetoothList[index].device.discoverServices();
+
+
+    for (BluetoothService service in services) {
+      var characteristics = service.characteristics;
+       for (BluetoothCharacteristic c in characteristics) {
+
+        print("properties : ${c.properties.read}: ${c.properties.read}");
+      }
+    }
   }
 
   void addBluetoothListItem(ScanResult r) {
