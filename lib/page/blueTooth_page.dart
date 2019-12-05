@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_blue/flutter_blue.dart';
@@ -26,10 +27,14 @@ class _BlueToothPageState extends State<BlueToothPage>
 
 //  蓝牙相关api
   FlutterBlue flutterBlue = FlutterBlue.instance;
+  BluetoothCharacteristic characteristic;
+  BluetoothCharacteristic readCharacteristic;
   StreamSubscription _subscription;
+  int bleSendSequence = 0;
 
 //  蓝牙设备列表
   List<ScanResult> bluetoothList = new List();
+
 //  连接的蓝牙设备
   BluetoothDevice bluetoothDevice;
 
@@ -58,6 +63,7 @@ class _BlueToothPageState extends State<BlueToothPage>
   @override
   void dispose() {
     // TODO: implement dispose
+    bleSendSequence = 0;
     _bluetoothAnimationController?.dispose();
     _bluetoothRefreshAnimationController?.dispose();
     flutterBlue.stopScan();
@@ -150,7 +156,7 @@ class _BlueToothPageState extends State<BlueToothPage>
                   new Expanded(
                       child: bluetoothList.length == 0 && refresh == false
                           ? noContent()
-                          : bluetoothListView())
+                          : bluetoothListView()),
                 ],
               ),
             ),
@@ -222,8 +228,11 @@ class _BlueToothPageState extends State<BlueToothPage>
               Padding(
                 padding: EdgeInsets.all(2.0),
               ),
-              Text("列表中没有智能蓝牙设备",
-                  style: TextStyle(color: Colors.grey, fontSize: 12.0))
+              InkWell(
+                onTap: showBottomSheet,
+                child: Text("列表中没有智能蓝牙设备",
+                    style: TextStyle(color: Colors.grey, fontSize: 12.0)),
+              )
             ],
           )
         ],
@@ -315,21 +324,182 @@ class _BlueToothPageState extends State<BlueToothPage>
 
 //  连接蓝牙设备
   connectDevice(int index) async {
-    bluetoothDevice =  bluetoothList[index].device;
+    bluetoothDevice = bluetoothList[index].device;
     await bluetoothDevice.connect();
+
+    bleSendSequence = 0;
     List<BluetoothService> services =
         await bluetoothList[index].device.discoverServices();
 
-
     for (BluetoothService service in services) {
       var characteristics = service.characteristics;
-       for (BluetoothCharacteristic c in characteristics) {
+      for (BluetoothCharacteristic c in characteristics) {
+        print(
+            "notify and write: ${c.properties.notify}, ${c.properties.write}");
+        if (c.properties.write) {
+          characteristic = c;
+        }
 
-        print("properties : ${c.properties.read}: ${c.properties.read}");
+        if (c.properties.notify) {
+          readCharacteristic = c;
+        }
       }
     }
+
+    print("isNotifying ${readCharacteristic.isNotifying}");
+    if (!readCharacteristic.isNotifying) {
+      await readCharacteristic.setNotifyValue(true);
+    }
+
+    List<int> resVal = new List();
+    readCharacteristic.value.listen((value) {
+//      String valStr = utf8.decode(value);
+      if (value.length < 4) return;
+      print(value);
+      if (value[1] == 20) {
+        value.sublist(4, value.length).forEach((v) {
+          resVal.add(v);
+        });
+        return;
+      }
+
+      if (value[1] == 4) {
+        value.sublist(4).forEach((v) {
+          resVal.add(v);
+        });
+
+        print(utf8.decode(resVal));
+
+        print(utf8.encode("Qc"));
+
+        resVal.clear();
+      }
+    });
   }
 
+  Future sendCMD(BluetoothCharacteristic characteristic, cmd, subCMD,
+      frameControl, payload, bleSendSequence) async {
+    var lsb = ((subCMD & 0x3f) << 2) | (cmd & 0x03);
+    var u8array = new List<int>();
+    u8array.add(lsb);
+    u8array.add(frameControl);
+    u8array.add(bleSendSequence);
+    u8array.add(payload.length);
+
+    for (int i = 0; i < payload.length; i++) {
+      u8array.add(payload[i]);
+    }
+
+    await characteristic.write(u8array);
+  }
+
+  sendName() async {
+    String name = "Qc";
+
+    List<int> nameArr = utf8.encode(name);
+    await sendCMD(characteristic, 0x01, 0x02, 0, nameArr, bleSendSequence);
+    bleSendSequence++;
+//    characteristic.write(value)
+  }
+
+  sendPassword() async {
+    String password = "32218180";
+
+    List<int> passwordArr = utf8.encode(password);
+    await sendCMD(characteristic, 0x01, 0x03, 0, passwordArr, bleSendSequence);
+    bleSendSequence++;
+    await sendCMD(characteristic, 0x00, 0x03, 0, '', bleSendSequence);
+    bleSendSequence++;
+  }
+
+//  检查连接状态
+  checkConnect() {
+    sendCMD(characteristic, 0x00, 0x05, 0, '', bleSendSequence);
+    bleSendSequence++;
+  }
+
+  void showBottomSheet() {
+    showModalBottomSheet(
+        context: context,
+        builder: (context) {
+          return Container(
+            color: Colors.black.withOpacity(0.55),
+            height: 300,
+            child: Column(
+                mainAxisAlignment: MainAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Container(
+                    width: MediaQuery.of(context).size.width,
+                    margin: EdgeInsets.only(bottom: 5.0),
+                    padding: EdgeInsets.all(8.0),
+                    decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.all(Radius.circular(10.0))),
+                    child: Column(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: <Widget>[
+                          Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Text("列表中没有启辰智能耳机?",
+                                style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 18.0,
+                                    color: Colors.black)),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Text("1. 手机离设备近一些",
+                                style: TextStyle(
+                                    fontSize: 12.0, color: Colors.black)),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Text("2. 请确保您的设备处于开机状态",
+                                style: TextStyle(
+                                    fontSize: 12.0, color: Colors.black)),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Text("3. 请确保您的手机已经开启蓝牙",
+                                style: TextStyle(
+                                    fontSize: 12.0, color: Colors.black)),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Text("4. 点击刷 “刷新列表” 按钮可以重新搜索设备",
+                                style: TextStyle(
+                                    fontSize: 12.0, color: Colors.black)),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Text("5. 只能耳机的蓝牙名称默认为 “启辰智能耳机-001”, 后续可在用户中心进行设备名称修改",
+                                style: TextStyle(
+                                    fontSize: 12.0, color: Colors.black)),
+                          ),
+                        ]),
+                  ),
+                  InkWell(
+                    onTap: () => Navigator.of(context).pop(),
+                    child: Container(
+                      width: MediaQuery.of(context).size.width,
+                      padding: EdgeInsets.all(15.0),
+                      decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.all(Radius.circular(10.0))),
+                      child: Center(
+                        child:
+                            Text("我知道了", style: TextStyle(color: Colors.green,fontSize: 16.0)),
+                      ),
+                    ),
+                  )
+                ]),
+          );
+        });
+  }
+
+//  添加item
   void addBluetoothListItem(ScanResult r) {
     int index = bluetoothList.length;
 
@@ -338,6 +508,7 @@ class _BlueToothPageState extends State<BlueToothPage>
         .insertItem(index, duration: Duration(milliseconds: 500));
   }
 
+//清空列表
   void _clearAllItems() {
     for (var i = 0; i <= bluetoothList.length - 1; i++) {
       _bluetoothListKey.currentState.removeItem(0,
