@@ -1,8 +1,8 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_blue/flutter_blue.dart';
+import 'package:flutter_qc/page/connectWifi_page.dart';
 
 class BlueToothPage extends StatefulWidget {
   @override
@@ -325,97 +325,8 @@ class _BlueToothPageState extends State<BlueToothPage>
 //  连接蓝牙设备
   connectDevice(int index) async {
     bluetoothDevice = bluetoothList[index].device;
-    await bluetoothDevice.connect();
 
-    bleSendSequence = 0;
-    List<BluetoothService> services =
-        await bluetoothList[index].device.discoverServices();
-
-    for (BluetoothService service in services) {
-      var characteristics = service.characteristics;
-      for (BluetoothCharacteristic c in characteristics) {
-        print(
-            "notify and write: ${c.properties.notify}, ${c.properties.write}");
-        if (c.properties.write) {
-          characteristic = c;
-        }
-
-        if (c.properties.notify) {
-          readCharacteristic = c;
-        }
-      }
-    }
-
-    print("isNotifying ${readCharacteristic.isNotifying}");
-    if (!readCharacteristic.isNotifying) {
-      await readCharacteristic.setNotifyValue(true);
-    }
-
-    List<int> resVal = new List();
-    readCharacteristic.value.listen((value) {
-//      String valStr = utf8.decode(value);
-      if (value.length < 4) return;
-      print(value);
-      if (value[1] == 20) {
-        value.sublist(4, value.length).forEach((v) {
-          resVal.add(v);
-        });
-        return;
-      }
-
-      if (value[1] == 4) {
-        value.sublist(4).forEach((v) {
-          resVal.add(v);
-        });
-
-        print(utf8.decode(resVal));
-
-        print(utf8.encode("Qc"));
-
-        resVal.clear();
-      }
-    });
-  }
-
-  Future sendCMD(BluetoothCharacteristic characteristic, cmd, subCMD,
-      frameControl, payload, bleSendSequence) async {
-    var lsb = ((subCMD & 0x3f) << 2) | (cmd & 0x03);
-    var u8array = new List<int>();
-    u8array.add(lsb);
-    u8array.add(frameControl);
-    u8array.add(bleSendSequence);
-    u8array.add(payload.length);
-
-    for (int i = 0; i < payload.length; i++) {
-      u8array.add(payload[i]);
-    }
-
-    await characteristic.write(u8array);
-  }
-
-  sendName() async {
-    String name = "Qc";
-
-    List<int> nameArr = utf8.encode(name);
-    await sendCMD(characteristic, 0x01, 0x02, 0, nameArr, bleSendSequence);
-    bleSendSequence++;
-//    characteristic.write(value)
-  }
-
-  sendPassword() async {
-    String password = "32218180";
-
-    List<int> passwordArr = utf8.encode(password);
-    await sendCMD(characteristic, 0x01, 0x03, 0, passwordArr, bleSendSequence);
-    bleSendSequence++;
-    await sendCMD(characteristic, 0x00, 0x03, 0, '', bleSendSequence);
-    bleSendSequence++;
-  }
-
-//  检查连接状态
-  checkConnect() {
-    sendCMD(characteristic, 0x00, 0x05, 0, '', bleSendSequence);
-    bleSendSequence++;
+    Navigator.of(context).push(new MaterialPageRoute(builder:  (BuildContext context) => new ConnectWifiPage(bluetoothDevice: bluetoothDevice)));
   }
 
   void showBottomSheet() {
