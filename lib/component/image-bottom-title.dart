@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_qc/component/container-background.dart';
 
 //背景图 + 底部标题栏
 

@@ -15,16 +15,19 @@ class _TabNavigatorState extends State<TabNavigator> {
   @override
   Widget build(BuildContext context) {
     return new Scaffold(
-      body: new Container(
-        decoration: BoxDecoration(gradient: LinearGradient(
-          colors: [
-            Color(0xffedeef0),
-            Color(0xffe6e7e9),
-          ],
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-        )),
-        child: _contentItem(_currentIndex),
+      body: SafeArea(
+        child: Container(
+          decoration: BoxDecoration(
+              gradient: LinearGradient(
+            colors: [
+              Color(0xffedeef0),
+              Color(0xffe6e7e9),
+            ],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          )),
+          child: _contentItem(_currentIndex),
+        ),
       ),
       bottomNavigationBar: new BottomNavigationBar(
         currentIndex: _currentIndex,

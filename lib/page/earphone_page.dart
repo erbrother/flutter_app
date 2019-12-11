@@ -23,16 +23,8 @@ class _EarphonePageState extends State<EarphonePage> {
 
   @override
   void dispose() {
-    // TODO: implement dispose
     super.dispose();
     print("earphone dispose");
-  }
-
-  @override
-  void didUpdateWidget(EarphonePage oldWidget) {
-    // TODO: implement didUpdateWidget
-    super.didUpdateWidget(oldWidget);
-    print("earphone page didUpdateWidget");
   }
 
   @override

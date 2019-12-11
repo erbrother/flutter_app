@@ -1,15 +1,12 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_blue/flutter_blue.dart';
 
 class ConnectWifiPage extends StatefulWidget {
   final BluetoothDevice bluetoothDevice;
 
-  ConnectWifiPage({
-    this.bluetoothDevice
-  });
+  ConnectWifiPage({this.bluetoothDevice});
 
   @override
   _ConnectWifiPageState createState() => _ConnectWifiPageState();
@@ -23,105 +20,105 @@ class _ConnectWifiPageState extends State<ConnectWifiPage>
   //  初始化页面
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
-    wifiAnimationController = new AnimationController(vsync: this, duration: Duration(seconds: 1));
-    wifiAnimation = new CurvedAnimation(parent: wifiAnimationController, curve: Curves.elasticOut);
+    print(widget.bluetoothDevice.name);
+    wifiAnimationController =
+        new AnimationController(vsync: this, duration: Duration(seconds: 1));
+    wifiAnimation = new CurvedAnimation(
+        parent: wifiAnimationController, curve: Curves.elasticOut);
   }
 
   @override
   void dispose() {
-    // TODO: implement dispose
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: SafeArea(
-        child: Stack(
-          children: <Widget>[
-            Container(
-              width: MediaQuery
-                  .of(context)
-                  .size
-                  .width,
-              padding: EdgeInsets.symmetric(vertical: 15.0),
-              decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                      colors: [Color(0xffedeef0), Color(0xffe6e7e9)],
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter)),
-              child: Column(
-                children: <Widget>[
-                  Container(
-                    padding:
-                    EdgeInsets.symmetric(vertical: 8.0, horizontal: 15.0),
-                    decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.all(Radius.circular(20.0))),
-                    child: Text("2/3 连接智能耳机",
-                        style: TextStyle(color: Colors.green, fontSize: 12.0)),
-                  ),
-                  Padding(
-                    padding: EdgeInsets.symmetric(vertical: 10.0),
-                    child: Text(
-                      "选择需要连接的网络",
-                      style: TextStyle(color: Colors.black, fontSize: 18.0),
+    return Hero(
+      tag: "blue",
+      child: Scaffold(
+        body: SafeArea(
+          child: Stack(
+            children: <Widget>[
+              Container(
+                width: MediaQuery.of(context).size.width,
+                padding: EdgeInsets.symmetric(vertical: 15.0),
+                decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                        colors: [Color(0xffedeef0), Color(0xffe6e7e9)],
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter)),
+                child: Column(
+                  children: <Widget>[
+                    Container(
+                      padding:
+                          EdgeInsets.symmetric(vertical: 8.0, horizontal: 15.0),
+                      decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius:
+                              BorderRadius.all(Radius.circular(20.0))),
+                      child: Text("2/3 连接智能耳机",
+                          style:
+                              TextStyle(color: Colors.green, fontSize: 12.0)),
                     ),
-                  ),
-                  Padding(
-                    padding: EdgeInsets.only(bottom: 10.0),
-                    child: Text("耳机将会连接到您输入的WIFI",
-                        style: TextStyle(color: Colors.black, fontSize: 14.0)),
-                  ),
-                  Padding(
-                    padding: EdgeInsets.all(5.0),
-                  ),
-                  new Expanded(
-                      child: Container()),
-                ],
+                    Padding(
+                      padding: EdgeInsets.symmetric(vertical: 10.0),
+                      child: Text(
+                        "选择需要连接的网络",
+                        style: TextStyle(color: Colors.black, fontSize: 18.0),
+                      ),
+                    ),
+                    Padding(
+                      padding: EdgeInsets.only(bottom: 10.0),
+                      child: Text("耳机将会连接到您输入的WIFI",
+                          style:
+                              TextStyle(color: Colors.black, fontSize: 14.0)),
+                    ),
+                    Padding(
+                      padding: EdgeInsets.all(5.0),
+                    ),
+                    new Expanded(child: Container()),
+                  ],
+                ),
               ),
-            ),
-            Positioned(
-              top: wifiAnimation.value * 80 - 50,
-              width: MediaQuery
-                  .of(context)
-                  .size
-                  .width,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: <Widget>[
-                  Expanded(
-                    child: InkWell(
-                      onTap: () {
-                        wifiAnimationController.animateTo(0);
-                      },
-                      child: Container(
-                        margin: EdgeInsets.symmetric(horizontal: 12.0),
-                        decoration: BoxDecoration(
-                            color: Colors.red,
-                            borderRadius: BorderRadius.all(Radius.circular(5))),
-                        child: Padding(
-                          padding: const EdgeInsets.all(15.0),
-                          child: Text(
-                            "请打开WIFI",
-                            textAlign: TextAlign.center,
-                            style: TextStyle(color: Colors.white),
+              Positioned(
+                top: wifiAnimation.value * 80 - 50,
+                width: MediaQuery.of(context).size.width,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: <Widget>[
+                    Expanded(
+                      child: InkWell(
+                        onTap: () {
+                          wifiAnimationController.animateTo(0);
+                        },
+                        child: Container(
+                          margin: EdgeInsets.symmetric(horizontal: 12.0),
+                          decoration: BoxDecoration(
+                              color: Colors.red,
+                              borderRadius:
+                                  BorderRadius.all(Radius.circular(5))),
+                          child: Padding(
+                            padding: const EdgeInsets.all(15.0),
+                            child: Text(
+                              "请打开WIFI",
+                              textAlign: TextAlign.center,
+                              style: TextStyle(color: Colors.white),
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                  )
-                ],
-              ),
-            )
-          ],
+                    )
+                  ],
+                ),
+              )
+            ],
+          ),
         ),
       ),
     );
   }
-
 
 //  连接蓝牙设备
   connectDevice(int index, bluetoothDevice, bleSendSequence) async {
@@ -130,8 +127,7 @@ class _ConnectWifiPageState extends State<ConnectWifiPage>
     var readCharacteristic;
 
     bleSendSequence = 0;
-    List<BluetoothService> services =
-    await bluetoothDevice.discoverServices();
+    List<BluetoothService> services = await bluetoothDevice.discoverServices();
 
     for (BluetoothService service in services) {
       var characteristics = service.characteristics;
@@ -232,10 +228,7 @@ class _ConnectWifiPageState extends State<ConnectWifiPage>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
                   Container(
-                    width: MediaQuery
-                        .of(context)
-                        .size
-                        .width,
+                    width: MediaQuery.of(context).size.width,
                     margin: EdgeInsets.only(bottom: 5.0),
                     padding: EdgeInsets.all(8.0),
                     decoration: BoxDecoration(
@@ -289,19 +282,16 @@ class _ConnectWifiPageState extends State<ConnectWifiPage>
                   InkWell(
                     onTap: () => Navigator.of(context).pop(),
                     child: Container(
-                      width: MediaQuery
-                          .of(context)
-                          .size
-                          .width,
+                      width: MediaQuery.of(context).size.width,
                       padding: EdgeInsets.all(15.0),
                       decoration: BoxDecoration(
                           color: Colors.white,
-                          borderRadius: BorderRadius.all(
-                              Radius.circular(10.0))),
+                          borderRadius:
+                              BorderRadius.all(Radius.circular(10.0))),
                       child: Center(
-                        child:
-                        Text("我知道了", style: TextStyle(
-                            color: Colors.green, fontSize: 16.0)),
+                        child: Text("我知道了",
+                            style:
+                                TextStyle(color: Colors.green, fontSize: 16.0)),
                       ),
                     ),
                   )
@@ -309,5 +299,4 @@ class _ConnectWifiPageState extends State<ConnectWifiPage>
           );
         });
   }
-
 }

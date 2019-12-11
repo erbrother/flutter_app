@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/painting.dart';
-import 'package:flutter_qc/page/tab_navigator.dart';
 
 class HomePage extends StatefulWidget {
   @override
@@ -156,7 +155,7 @@ class _HomePageState extends State<HomePage> {
   //连接设备
   void connectDevice() {
     print("连接设备：${_controller.text}");
-    print("用户协议：${_userAgreement}");
+    print("用户协议：$_userAgreement");
   }
 
   void noDevice(context) {
