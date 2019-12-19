@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_qc/component/container-background.dart';
 import 'package:flutter_qc/page/blueTooth_page.dart';
+import 'package:flutter_qc/page/connectWifi_page.dart';
 import 'package:flutter_qc/page/course_page.dart';
 import 'package:flutter_qc/page/home_page.dart';
 
@@ -330,7 +331,11 @@ class _EarphonePageState extends State<EarphonePage> {
                 children: <Widget>[
                   Container(child: new Text("学习任务 2019/11/12")),
                   new Expanded(child: new Container()),
-                  Container(child: new Text("查看全部"))
+                  Container(child: InkWell(
+                    onTap: () {
+                      Navigator.of(context).push(MaterialPageRoute(builder: (BuildContext context) => ConnectWifiPage(bluetoothDevice: null)));
+                    },
+                    child: Text("查看全部")))
                 ],
               ),
             ),

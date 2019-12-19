@@ -6,6 +6,7 @@ import 'package:flutter_blue/flutter_blue.dart';
 class ConnectWifiPage extends StatefulWidget {
   final BluetoothDevice bluetoothDevice;
 
+  // ConnectWifiPage();
   ConnectWifiPage({this.bluetoothDevice});
 
   @override
@@ -17,11 +18,14 @@ class _ConnectWifiPageState extends State<ConnectWifiPage>
   Animation wifiAnimation;
   AnimationController wifiAnimationController;
 
+  TextEditingController _wifiNameController = TextEditingController();
+  TextEditingController _wifiPasswordController = TextEditingController();
+  bool wifiStatus = false;
+
   //  初始化页面
   @override
   void initState() {
     super.initState();
-    print(widget.bluetoothDevice.name);
     wifiAnimationController =
         new AnimationController(vsync: this, duration: Duration(seconds: 1));
     wifiAnimation = new CurvedAnimation(
@@ -38,6 +42,7 @@ class _ConnectWifiPageState extends State<ConnectWifiPage>
     return Hero(
       tag: "blue",
       child: Scaffold(
+        resizeToAvoidBottomInset: false,
         body: SafeArea(
           child: Stack(
             children: <Widget>[
@@ -78,7 +83,151 @@ class _ConnectWifiPageState extends State<ConnectWifiPage>
                     Padding(
                       padding: EdgeInsets.all(5.0),
                     ),
-                    new Expanded(child: Container()),
+                    Container(
+                      width: MediaQuery.of(context).size.width * 0.8,
+                      padding: EdgeInsets.all(20.0),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.all(Radius.circular(6.0)),
+                      ),
+                      child: Column(
+                        children: <Widget>[
+                          Container(
+                            padding: EdgeInsets.all(10.0),
+                            margin: EdgeInsets.only(bottom: 5.0),
+                            decoration: BoxDecoration(
+                                borderRadius:
+                                    BorderRadius.all(Radius.circular(10.0)),
+                                color: Color(0xffedeef0)),
+                            child: Row(
+                              children: <Widget>[
+                                Icon(Icons.wifi, color: Colors.grey),
+                                Expanded(
+                                    child: Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 8.0),
+                                        child: TextField(
+                                          controller: _wifiNameController,
+                                          style: TextStyle(
+                                              fontSize: 12.0,
+                                              color: Colors.grey),
+                                          decoration: InputDecoration(
+                                              hintText: "wifi名称",
+                                              contentPadding: EdgeInsets.symmetric(vertical: 0),
+                                              hintStyle: TextStyle(
+                                                  fontSize: 12.0,
+                                                  color: Colors.grey),
+                                              border: InputBorder.none),
+                                        ))),
+                                Container(
+                                  padding: EdgeInsets.symmetric(
+                                      horizontal: 10.0, vertical: 5.0),
+                                  decoration: BoxDecoration(
+                                    borderRadius:
+                                        BorderRadius.all(Radius.circular(20.0)),
+                                    color: Colors.green,
+                                  ),
+                                  child: Center(
+                                    child: Text(
+                                      "切换网络",
+                                      style: TextStyle(
+                                          color: Colors.white, fontSize: 12.0),
+                                    ),
+                                  ),
+                                )
+                              ],
+                            ),
+                          ),
+                          // wifiName wifipassword show content
+                          Container(
+                            padding: EdgeInsets.all(10.0),
+                            margin: EdgeInsets.symmetric(vertical: 5.0),
+                            decoration: BoxDecoration(
+                                borderRadius:
+                                    BorderRadius.all(Radius.circular(10.0)),
+                                color: Color(0xffedeef0)),
+                            child: Row(
+                              children: <Widget>[
+                                Icon(Icons.lock_outline, color: Colors.grey),
+                                Expanded(
+                                    child: Padding(
+                                        padding: EdgeInsets.symmetric(
+                                            horizontal: 8.0),
+                                        child: TextField(
+                                          controller: _wifiPasswordController,
+                                          style: TextStyle(
+                                              fontSize: 12.0,
+                                              color: Colors.grey),
+                                          decoration: InputDecoration(
+                                              hintText: "请输入密码",
+                                              contentPadding: EdgeInsets.symmetric(vertical: 0),
+                                              hintStyle: TextStyle(
+                                                  fontSize: 12.0,
+                                                  color: Colors.grey),
+                                              border: InputBorder.none),
+                                        ))),
+                                Icon(Icons.remove_red_eye, color: Colors.grey)
+                              ],
+                            ),
+                          ),
+                          Row(
+                            children: <Widget>[
+                              Expanded(
+                                child: RaisedButton(
+                                  onPressed: () => {},
+                                  color: Colors.green,
+                                  textColor: Colors.white,
+                                  splashColor: Colors.white10,
+                                  shape: RoundedRectangleBorder(
+                                      borderRadius:
+                                          BorderRadius.circular(20.0)),
+                                  child: Text('开始连接'),
+                                ),
+                              )
+                            ],
+                          ),
+                          Row(
+                            children: <Widget>[
+                              InkWell(
+                                onTap: () {
+                                  this.setState(() {
+                                    wifiStatus = !wifiStatus;
+                                  });
+                                },
+                                child: Padding(
+                                  padding:
+                                      EdgeInsets.symmetric(horizontal: 5.0),
+                                  child: wifiStatus
+                                      ? Icon(
+                                          Icons.radio_button_checked,
+                                          color: Colors.grey,
+                                        )
+                                      : Icon(
+                                          Icons.radio_button_unchecked,
+                                          color: Colors.grey,
+                                        ),
+                                ),
+                              ),
+                              Text(
+                                "我的wifi已设为隐藏网络(未开启无线广播)",
+                                style: TextStyle(
+                                    fontSize: 10.0, color: Colors.grey),
+                              )
+                            ],
+                          )
+                        ],
+                      ),
+                    ),
+                    Expanded(child: Container()),
+                    InkWell(
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: <Widget>[
+                          Icon(Icons.lightbulb_outline, color: Colors.grey),
+                          Text("哪些网络不支持", style: TextStyle(color: Colors.grey))
+                        ],
+                      ),
+                    )
                   ],
                 ),
               ),
