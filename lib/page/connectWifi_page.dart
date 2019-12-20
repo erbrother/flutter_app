@@ -21,6 +21,8 @@ class _ConnectWifiPageState extends State<ConnectWifiPage>
   TextEditingController _wifiNameController = TextEditingController();
   TextEditingController _wifiPasswordController = TextEditingController();
   bool wifiStatus = false;
+  num bleSendSequence = 0;
+  var characteristic;
 
   //  初始化页面
   @override
@@ -35,6 +37,7 @@ class _ConnectWifiPageState extends State<ConnectWifiPage>
   @override
   void dispose() {
     super.dispose();
+    widget.bluetoothDevice.disconnect();
   }
 
   @override
@@ -113,7 +116,9 @@ class _ConnectWifiPageState extends State<ConnectWifiPage>
                                               color: Colors.grey),
                                           decoration: InputDecoration(
                                               hintText: "wifi名称",
-                                              contentPadding: EdgeInsets.symmetric(vertical: 0),
+                                              contentPadding:
+                                                  EdgeInsets.symmetric(
+                                                      vertical: 0),
                                               hintStyle: TextStyle(
                                                   fontSize: 12.0,
                                                   color: Colors.grey),
@@ -160,7 +165,9 @@ class _ConnectWifiPageState extends State<ConnectWifiPage>
                                               color: Colors.grey),
                                           decoration: InputDecoration(
                                               hintText: "请输入密码",
-                                              contentPadding: EdgeInsets.symmetric(vertical: 0),
+                                              contentPadding:
+                                                  EdgeInsets.symmetric(
+                                                      vertical: 0),
                                               hintStyle: TextStyle(
                                                   fontSize: 12.0,
                                                   color: Colors.grey),
@@ -174,7 +181,7 @@ class _ConnectWifiPageState extends State<ConnectWifiPage>
                             children: <Widget>[
                               Expanded(
                                 child: RaisedButton(
-                                  onPressed: () => {},
+                                  onPressed: _connect,
                                   color: Colors.green,
                                   textColor: Colors.white,
                                   splashColor: Colors.white10,
@@ -184,6 +191,11 @@ class _ConnectWifiPageState extends State<ConnectWifiPage>
                                   child: Text('开始连接'),
                                 ),
                               )
+                            ],
+                          ),
+                          Row(
+                            children: <Widget>[
+                              RaisedButton(onPressed: checkConnect,child: Text("连接设备"),)
                             ],
                           ),
                           Row(
@@ -269,20 +281,15 @@ class _ConnectWifiPageState extends State<ConnectWifiPage>
     );
   }
 
-//  连接蓝牙设备
-  connectDevice(int index, bluetoothDevice, bleSendSequence) async {
-    await bluetoothDevice.connect();
-    var characteristic;
+  _connect() async {
+    BluetoothDevice bluetoothDevice = widget.bluetoothDevice;
     var readCharacteristic;
-
-    bleSendSequence = 0;
+    await bluetoothDevice.connect();
     List<BluetoothService> services = await bluetoothDevice.discoverServices();
 
     for (BluetoothService service in services) {
       var characteristics = service.characteristics;
       for (BluetoothCharacteristic c in characteristics) {
-        print(
-            "notify and write: ${c.properties.notify}, ${c.properties.write}");
         if (c.properties.write) {
           characteristic = c;
         }
@@ -293,20 +300,18 @@ class _ConnectWifiPageState extends State<ConnectWifiPage>
       }
     }
 
-    print("isNotifying ${readCharacteristic.isNotifying}");
     if (!readCharacteristic.isNotifying) {
       await readCharacteristic.setNotifyValue(true);
     }
 
     List<int> resVal = new List();
     readCharacteristic.value.listen((value) {
-//      String valStr = utf8.decode(value);
       if (value.length < 4) return;
-      print(value);
       if (value[1] == 20) {
         value.sublist(4, value.length).forEach((v) {
           resVal.add(v);
         });
+
         return;
       }
 
@@ -315,13 +320,16 @@ class _ConnectWifiPageState extends State<ConnectWifiPage>
           resVal.add(v);
         });
 
-        print(utf8.decode(resVal));
+        print("resVal: $resVal");
 
-        print(utf8.encode("Qc"));
-
+        print(utf8.encode(_wifiNameController.text));
+        listContainList(resVal, utf8.encode(_wifiNameController.text));
         resVal.clear();
       }
     });
+
+    await sendName();
+    sendPassword();
   }
 
   Future sendCMD(BluetoothCharacteristic characteristic, cmd, subCMD,
@@ -340,27 +348,27 @@ class _ConnectWifiPageState extends State<ConnectWifiPage>
     await characteristic.write(u8array);
   }
 
-  sendName(characteristic, bleSendSequence) async {
-    String name = "Qc";
+  sendName() async {
+    String name = _wifiNameController.text;
 
     List<int> nameArr = utf8.encode(name);
     await sendCMD(characteristic, 0x01, 0x02, 0, nameArr, bleSendSequence);
     bleSendSequence++;
-//    characteristic.write(value)
   }
 
-  sendPassword(characteristic, bleSendSequence) async {
-    String password = "32218180";
+  sendPassword() async {
+    String password = _wifiPasswordController.text;
 
     List<int> passwordArr = utf8.encode(password);
     await sendCMD(characteristic, 0x01, 0x03, 0, passwordArr, bleSendSequence);
     bleSendSequence++;
+    // 蓝牙连接WIFI
     await sendCMD(characteristic, 0x00, 0x03, 0, '', bleSendSequence);
     bleSendSequence++;
   }
 
 //  检查连接状态
-  checkConnect(characteristic, bleSendSequence) {
+  checkConnect() {
     sendCMD(characteristic, 0x00, 0x05, 0, '', bleSendSequence);
     bleSendSequence++;
   }
@@ -447,5 +455,25 @@ class _ConnectWifiPageState extends State<ConnectWifiPage>
                 ]),
           );
         });
+  }
+
+  listContainList(List list,List containList) {
+    List _list = list;
+    List _containList = containList;
+    List _compareList;
+    num index;
+    dynamic firstItem;
+
+    assert(_containList.length == 0, "the containList length equal 0!");
+    assert(_list.length < _containList.length, "the containList length too long!");
+
+    firstItem = containList[0];
+
+    index = _list.indexOf(firstItem);
+    if(index != -1) {
+      _compareList = _list.getRange(index, index + _containList.length);
+      print("compareList");
+      print(_compareList);
+    }
   }
 }
