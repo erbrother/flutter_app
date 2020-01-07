@@ -32,6 +32,8 @@ class _ConnectWifiPageState extends State<ConnectWifiPage>
         new AnimationController(vsync: this, duration: Duration(seconds: 1));
     wifiAnimation = new CurvedAnimation(
         parent: wifiAnimationController, curve: Curves.elasticOut);
+    
+    _initConnect();
   }
 
   @override
@@ -195,7 +197,10 @@ class _ConnectWifiPageState extends State<ConnectWifiPage>
                           ),
                           Row(
                             children: <Widget>[
-                              RaisedButton(onPressed: checkConnect,child: Text("连接设备"),)
+                              RaisedButton(
+                                onPressed: checkConnect,
+                                child: Text("连接设备"),
+                              )
                             ],
                           ),
                           Row(
@@ -281,9 +286,10 @@ class _ConnectWifiPageState extends State<ConnectWifiPage>
     );
   }
 
-  _connect() async {
-    BluetoothDevice bluetoothDevice = widget.bluetoothDevice;
+  _initConnect() async {
+        BluetoothDevice bluetoothDevice = widget.bluetoothDevice;
     var readCharacteristic;
+    
     await bluetoothDevice.connect();
     List<BluetoothService> services = await bluetoothDevice.discoverServices();
 
@@ -320,14 +326,13 @@ class _ConnectWifiPageState extends State<ConnectWifiPage>
           resVal.add(v);
         });
 
-        print("resVal: $resVal");
-
-        print(utf8.encode(_wifiNameController.text));
-        listContainList(resVal, utf8.encode(_wifiNameController.text));
+        bool res_status = listContainList(resVal, utf8.encode(_wifiNameController.text));
+        print(res_status);
         resVal.clear();
       }
     });
-
+  }
+  _connect() async {
     await sendName();
     sendPassword();
   }
@@ -457,23 +462,33 @@ class _ConnectWifiPageState extends State<ConnectWifiPage>
         });
   }
 
-  listContainList(List list,List containList) {
-    List _list = list;
-    List _containList = containList;
-    List _compareList;
-    num index;
-    dynamic firstItem;
+  listContainList(List list, List containList) {
+    int length = containList.length;
+    final first_code = containList[0];
+    List compare_list = [];
+    bool list_contain = false;
 
-    assert(_containList.length == 0, "the containList length equal 0!");
-    assert(_list.length < _containList.length, "the containList length too long!");
+    while (!list_contain && list.length > length) {
+      var index = list.indexOf(first_code);
+      print(index);
+      if (index != -1) {
+        compare_list = list.sublist(index, index+length);
+        bool compare_result = true;
+        for (var i = 0; i < compare_list.length; i++) {
+          if (compare_list[i] != containList[i]) {
+            compare_result = false;
+            break;
+          }
+        }
 
-    firstItem = containList[0];
-
-    index = _list.indexOf(firstItem);
-    if(index != -1) {
-      _compareList = _list.getRange(index, index + _containList.length);
-      print("compareList");
-      print(_compareList);
+        if (compare_result) {
+          list_contain = true;
+        } else {
+          list = list.sublist(index, index+length);
+        }
+      }
     }
+
+    return list_contain;
   }
 }
