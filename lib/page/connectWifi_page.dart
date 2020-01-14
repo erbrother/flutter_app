@@ -1,7 +1,10 @@
 import 'dart:async';
 import 'dart:convert';
+import 'package:after_layout/after_layout.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_blue/flutter_blue.dart';
+import 'package:flutter_qc/component/loadingDialog.dart';
+import 'package:flutter_qc/page/connectWifiSuccess_page.dart';
 
 class ConnectWifiPage extends StatefulWidget {
   final BluetoothDevice bluetoothDevice;
@@ -14,15 +17,22 @@ class ConnectWifiPage extends StatefulWidget {
 }
 
 class _ConnectWifiPageState extends State<ConnectWifiPage>
-    with SingleTickerProviderStateMixin {
+    with SingleTickerProviderStateMixin, AfterLayoutMixin<ConnectWifiPage> {
+  bool connectSate = false;
+
   Animation wifiAnimation;
   AnimationController wifiAnimationController;
 
   TextEditingController _wifiNameController = TextEditingController();
   TextEditingController _wifiPasswordController = TextEditingController();
   bool wifiStatus = false;
+  bool deviceState = false;
   num bleSendSequence = 0;
   var characteristic;
+
+  Timer timer;
+  Duration duration = new Duration(seconds: 10);
+  Timer timerOut;
 
   //  初始化页面
   @override
@@ -32,14 +42,30 @@ class _ConnectWifiPageState extends State<ConnectWifiPage>
         new AnimationController(vsync: this, duration: Duration(seconds: 1));
     wifiAnimation = new CurvedAnimation(
         parent: wifiAnimationController, curve: Curves.elasticOut);
-    
+  }
+
+  @override
+  void afterFirstLayout(BuildContext context) {
+    showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context) {
+          return new LoadingDialog(
+            text: "蓝牙连接中",
+          );
+        });
+
     _initConnect();
   }
 
   @override
   void dispose() {
     super.dispose();
-    widget.bluetoothDevice.disconnect();
+    print('connectWifi dispose');
+    wifiAnimationController?.dispose();
+    widget.bluetoothDevice?.disconnect();
+    timer?.cancel();
+    timerOut?.cancel();
   }
 
   @override
@@ -117,10 +143,11 @@ class _ConnectWifiPageState extends State<ConnectWifiPage>
                                               fontSize: 12.0,
                                               color: Colors.grey),
                                           decoration: InputDecoration(
+                                              isDense: true,
                                               hintText: "wifi名称",
                                               contentPadding:
                                                   EdgeInsets.symmetric(
-                                                      vertical: 0),
+                                                      vertical: 10),
                                               hintStyle: TextStyle(
                                                   fontSize: 12.0,
                                                   color: Colors.grey),
@@ -166,10 +193,11 @@ class _ConnectWifiPageState extends State<ConnectWifiPage>
                                               fontSize: 12.0,
                                               color: Colors.grey),
                                           decoration: InputDecoration(
+                                              isDense: true,
                                               hintText: "请输入密码",
                                               contentPadding:
                                                   EdgeInsets.symmetric(
-                                                      vertical: 0),
+                                                      vertical: 10),
                                               hintStyle: TextStyle(
                                                   fontSize: 12.0,
                                                   color: Colors.grey),
@@ -192,14 +220,6 @@ class _ConnectWifiPageState extends State<ConnectWifiPage>
                                           BorderRadius.circular(20.0)),
                                   child: Text('开始连接'),
                                 ),
-                              )
-                            ],
-                          ),
-                          Row(
-                            children: <Widget>[
-                              RaisedButton(
-                                onPressed: checkConnect,
-                                child: Text("连接设备"),
                               )
                             ],
                           ),
@@ -287,9 +307,19 @@ class _ConnectWifiPageState extends State<ConnectWifiPage>
   }
 
   _initConnect() async {
-        BluetoothDevice bluetoothDevice = widget.bluetoothDevice;
+    BluetoothDevice bluetoothDevice = widget.bluetoothDevice;
     var readCharacteristic;
-    
+    var subscription;
+
+    subscription = bluetoothDevice.state.listen((data) {
+      if (data == BluetoothDeviceState.connected) {
+        Future.delayed(Duration(seconds: 1), () {
+          Navigator.of(context).pop();
+        });
+        subscription.cancel();
+      }
+    });
+
     await bluetoothDevice.connect();
     List<BluetoothService> services = await bluetoothDevice.discoverServices();
 
@@ -300,7 +330,7 @@ class _ConnectWifiPageState extends State<ConnectWifiPage>
           characteristic = c;
         }
 
-        if (c.properties.notify) {
+        if (c.properties.read) {
           readCharacteristic = c;
         }
       }
@@ -311,7 +341,9 @@ class _ConnectWifiPageState extends State<ConnectWifiPage>
     }
 
     List<int> resVal = new List();
+
     readCharacteristic.value.listen((value) {
+
       if (value.length < 4) return;
       if (value[1] == 20) {
         value.sublist(4, value.length).forEach((v) {
@@ -326,15 +358,70 @@ class _ConnectWifiPageState extends State<ConnectWifiPage>
           resVal.add(v);
         });
 
-        bool res_status = listContainList(resVal, utf8.encode(_wifiNameController.text));
-        print(res_status);
+        bool resStatus =
+            listContainList(resVal, utf8.encode(_wifiNameController.text));
+        if (resStatus) {
+          print('连接成功');
+          widget.bluetoothDevice?.disconnect();
+          timer?.cancel();
+          timerOut?.cancel();
+          Navigator.of(context).pop();
+          Navigator.of(context).pushReplacement(new MaterialPageRoute(
+              builder: (context) => ConnectWifiSuccess()));
+        }
+
         resVal.clear();
       }
     });
   }
+
   _connect() async {
+    showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context) {
+          return new LoadingDialog(
+            text: "配网中...",
+          );
+        });
     await sendName();
-    sendPassword();
+    await sendPassword();
+
+    timer?.cancel();
+    timer = new Timer.periodic(Duration(seconds: 1), (timer) {
+      checkConnect();
+    });
+    
+    timerOut = new Timer(duration, () {
+      timer?.cancel();
+      Navigator.of(context).pop();
+      showDialog<void>(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text('提示'),
+            content: SingleChildScrollView(
+              child: ListBody(
+                children: <Widget>[
+                  Text('网络连接超时')
+                ],
+              ),
+            ),
+            actions: <Widget>[
+              FlatButton(
+                child: Text('关闭'),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          );
+        },
+      );
+    });
+
+    print("_connect");
   }
 
   Future sendCMD(BluetoothCharacteristic characteristic, cmd, subCMD,
@@ -353,7 +440,7 @@ class _ConnectWifiPageState extends State<ConnectWifiPage>
     await characteristic.write(u8array);
   }
 
-  sendName() async {
+  Future sendName() async {
     String name = _wifiNameController.text;
 
     List<int> nameArr = utf8.encode(name);
@@ -361,13 +448,14 @@ class _ConnectWifiPageState extends State<ConnectWifiPage>
     bleSendSequence++;
   }
 
-  sendPassword() async {
+  Future sendPassword() async {
     String password = _wifiPasswordController.text;
 
     List<int> passwordArr = utf8.encode(password);
+    // 发送密码
     await sendCMD(characteristic, 0x01, 0x03, 0, passwordArr, bleSendSequence);
     bleSendSequence++;
-    // 蓝牙连接WIFI
+    // 发送连接指令
     await sendCMD(characteristic, 0x00, 0x03, 0, '', bleSendSequence);
     bleSendSequence++;
   }
@@ -463,32 +551,38 @@ class _ConnectWifiPageState extends State<ConnectWifiPage>
   }
 
   listContainList(List list, List containList) {
+    if (list.length == 0 || containList.length == 0) {
+      return false;
+    }
     int length = containList.length;
-    final first_code = containList[0];
-    List compare_list = [];
-    bool list_contain = false;
+    final firstCode = containList[0];
+    List compareList = [];
+    bool listContain = false;
 
-    while (!list_contain && list.length > length) {
-      var index = list.indexOf(first_code);
-      print(index);
+    while (!listContain && list.length > length) {
+      var index = list.indexOf(firstCode);
       if (index != -1) {
-        compare_list = list.sublist(index, index+length);
-        bool compare_result = true;
-        for (var i = 0; i < compare_list.length; i++) {
-          if (compare_list[i] != containList[i]) {
-            compare_result = false;
+        compareList = list.sublist(index, index + length);
+        bool compareResult = true;
+        for (var i = 0; i < compareList.length; i++) {
+          if (compareList[i] != containList[i]) {
+            compareResult = false;
             break;
           }
         }
 
-        if (compare_result) {
-          list_contain = true;
+        if (compareResult) {
+          listContain = true;
         } else {
-          list = list.sublist(index, index+length);
+          list = list.sublist(index, index + length);
         }
+      } else {
+        break;
       }
+
+      
     }
 
-    return list_contain;
+    return listContain;
   }
 }

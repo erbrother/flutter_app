@@ -7,8 +7,10 @@ import './common/util/http.dart';
 
 
 void main() {
-  SystemChrome.setEnabledSystemUIOverlays([]);
+  
   initDio();
+  WidgetsFlutterBinding.ensureInitialized();
+  SystemChrome.setEnabledSystemUIOverlays([]);
   runApp(MyApp());
 }
 

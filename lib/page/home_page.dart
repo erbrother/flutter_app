@@ -76,17 +76,22 @@ class _HomePageState extends State<HomePage> {
                               child: new Container(
                                   padding:
                                       EdgeInsets.symmetric(horizontal: 30.0),
-                                  height: 36.0,
                                   decoration: BoxDecoration(
                                       color: Colors.white,
                                       borderRadius: BorderRadius.all(
                                           Radius.circular(25.0))),
                                   child: new TextField(
                                     controller: _controller,
-                                    decoration: new InputDecoration(
+                                    style: TextStyle(
+                                      fontSize: 14.0
+                                    ),
+                                    decoration: InputDecoration(
+                                        contentPadding: EdgeInsets.symmetric(vertical: 10.0),
+                                         isDense: true,
                                         hintText: "输入设备ID登录",
-                                        contentPadding:
-                                            EdgeInsets.only(top: 5.0),
+                                        hintStyle: TextStyle(
+                                          fontSize: 14.0
+                                        ),
                                         border: InputBorder.none),
                                   )),
                             ),
