@@ -296,6 +296,7 @@ class _BlueToothPageState extends State<BlueToothPage>
       refresh = true;
     });
     _bluetoothRefreshAnimationController.repeat();
+    
     _subscription = flutterBlue.scan(
         timeout: Duration(seconds: 4),
         withServices: [
